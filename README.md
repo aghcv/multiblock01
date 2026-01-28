@@ -44,7 +44,18 @@ conda config --set channel_priority strict
 conda env remove -n cxxgeom --yes || true
 conda env create -f environment.yml
 conda activate cxxgeom
+# Run the post-link script. By default the heavy source builds (OpenVDB, VMTK)
+# are skipped. To perform the full local installation (needed once for local
+# unit tests and development), set RUN_HEAVY=1 when running the script:
+
+# One-shot heavy install (recommended when you want the full native builds):
+export RUN_HEAVY=1
 bash .conda/post-link.sh
+# After successful run you can unset the flag (the heavy build will not run again):
+unset RUN_HEAVY
+
+# If you prefer to avoid source builds and use prebuilt conda packages, install
+# OpenVDB and VMTK from conda-forge instead (add them to environment.yml).
 ```
 
 ## 4. Verify installation
@@ -60,7 +71,6 @@ bash .conda/post-link.sh
 rm -rf build
 mkdir -p build && cd build
 cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release
-ctest --output-on-failure   # if you want to run the UT
 ```
 
 ## 6. Build the project
@@ -68,7 +78,12 @@ ctest --output-on-failure   # if you want to run the UT
 ninja
 ```
 
-## 7. Run example
+## 7. Run unit tests
+```bash
+ctest --output-on-failure
+```
+
+## 8. Run example
 ```bash
 ./multiblock ../data/example.vtp
 ```

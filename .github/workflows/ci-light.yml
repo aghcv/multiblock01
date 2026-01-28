@@ -1,0 +1,47 @@
+name: CI Light — Fast build & tests
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Miniforge (conda)
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          miniforge-version: 'latest'
+          auto-update-conda: false
+          python-version: 3.11
+          auto-activate-base: false
+
+      - name: Create env (light) with mamba
+        shell: bash -l {0}
+        run: |
+          source "$(conda info --base)/etc/profile.d/conda.sh"
+          conda config --set channel_priority strict
+          conda config --add channels conda-forge
+          # Create env but do not run heavy post-link
+          mamba env create -f environment.yml -n cxxgeom || conda env create -f environment.yml -n cxxgeom
+
+      - name: Configure & build
+        shell: bash -l {0}
+        run: |
+          source "$(conda info --base)/etc/profile.d/conda.sh"
+          conda activate cxxgeom
+          rm -rf build
+          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+          cmake --build build --config Release
+
+      - name: Run unit tests
+        shell: bash -l {0}
+        run: |
+          source "$(conda info --base)/etc/profile.d/conda.sh"
+          conda activate cxxgeom
+          cd build
+          ctest --output-on-failure --verbose

@@ -57,6 +57,7 @@ file(GLOB LIB_SOURCES CONFIGURE_DEPENDS
     src/centerline_extraction.cpp
     src/distance_field.cpp
     src/ownership_map.cpp
+    src/vtk_to_vdb_converter.cpp
 )
 
 add_library(multiblock_lib STATIC ${LIB_SOURCES})
