@@ -42,18 +42,4 @@ target_link_libraries(multiblock PRIVATE multiblock_lib
 vtk_module_autoinit(TARGETS multiblock multiblock_lib MODULES
     VTK::CommonCore VTK::CommonDataModel VTK::IOXML VTK::IOLegacy VTK::IOGeometry)
 
-# Unit Tests
-enable_testing()
-include(FetchContent)
-find_package(GTest QUIET)
-if(NOT GTest_FOUND)
-    message(STATUS "GTest not found; Fetching googletest via FetchContent...")
-    FetchContent_Declare(
-        googletest
-        URL https://github.com/google/googletest/archive/refs/tags/release-1.12.1.zip
-    )
-    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-    FetchContent_MakeAvailable(googletest)
-endif()
-
-add_subdirectory(tests)
+# No unit tests on the 'light' branch
