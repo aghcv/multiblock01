@@ -15,13 +15,8 @@ multiblock/
 │   ├── fastvessels/
 │   │   ├── io_utils.hpp
 │   │   └── ...
-├── tests/
-│   ├── data/
-│   │   └── cube.stl
-│   │   CMakeLists.txt
-│   └── test_io_utils.cpp
-├── environment.yml  
-├── post_build_vmtk.sh
+├── environment.yml
+├── setup.sh
 └── README.md
 ```
 
@@ -43,7 +38,7 @@ bash setup.sh
 
 ## 3. Run example
 ```bash
-./multiblock ../data/example.vtp
+./build/multiblock
 ```
 
 ---
