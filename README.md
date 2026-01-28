@@ -38,9 +38,28 @@ bash setup.sh
 
 ## 3. Run example
 ```bash
-./build/multiblock
+./build/multiblock.mbx
 ```
-You should see: "Hello from multiblock (VTK-only, light branch)".
+On first run, it generates a config file in output/ (default: output/solver_input.txt) and runs a small compute benchmark.
+
+### Solver input
+- Default config file: output/solver_input.txt (auto-generated if missing)
+- Key fields:
+    - `feature`: `default`, `cpu_accelerated`, `gpu_accelerated`, `cpu_gpu_accelerated`
+    - `cpu_threads`: threads per rank (`0` = auto)
+    - `num_gpus`: `-1` = auto-detect (env-based), `0` = CPU-only
+    - `mode`: `run` or `preprocess`
+
+### Preprocess (auto-benchmark and write optimized config)
+Edit output/solver_input.txt:
+```text
+mode=preprocess
+```
+Then run:
+```bash
+./build/multiblock.mbx
+```
+It writes output/solver_input.txt (updated in-place by preprocess) and output/results.txt after a run.
 
 ---
 

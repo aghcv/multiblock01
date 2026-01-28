@@ -37,4 +37,4 @@ cmake -S "${PROJECT_DIR}" -B "${PROJECT_DIR}/build" -G Ninja -DCMAKE_BUILD_TYPE=
 say "Building with Ninja"
 cmake --build "${PROJECT_DIR}/build" --config Release
 
-say "Done. Binary is at: ${PROJECT_DIR}/build/multiblock"
+say "Done. Binary is at: ${PROJECT_DIR}/build/multiblock.mbx"

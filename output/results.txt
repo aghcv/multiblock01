@@ -1,0 +1,14 @@
+# Results
+feature=default
+mode=run
+cpu_logical=14
+cpu_physical=14
+gpus=1
+gpu_cores=32
+work_items=5000000
+inner_iters=64
+cpu_threads=1
+num_gpus=0
+time_s=1.220201
+items_per_s=4097686.95
+checksum=-3736281.815964
