@@ -40,6 +40,7 @@ bash setup.sh
 ```bash
 ./build/multiblock
 ```
+You should see: "Hello from multiblock (VTK-only, light branch)".
 
 ---
 
