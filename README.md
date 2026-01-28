@@ -1,6 +1,6 @@
 # multiblock
 
-Note: You are on the 'light' branch — a minimal, VTK-only setup intended for a fast, no-frills build. OpenVDB/VMTK, unit tests, and CI are removed here; see the main branch for full functionality.
+Note: You are on the 'light' branch. This is a minimal VTK-only setup.
 
 `multiblock` provides tools to analyze and manipulate surface meshes using VTK multiblock structures.
 
@@ -31,7 +31,7 @@ cd <your-repo>
 ```
 
 ## 2. One-step setup
-Run the setup script; it will create the env, configure and build:
+Run the setup script:
 ```bash
 bash setup.sh
 ```
@@ -46,8 +46,7 @@ You should see: "Hello from multiblock (VTK-only, light branch)".
 
 # 🧠 Developer Setup (optional)
 
-To enable smooth development and header auto-completion across all IDEs (VS Code, CLion, Qt Creator, Visual Studio, etc.),  
-`multiblock` exports a `compile_commands.json` file that describes all compiler flags and include paths.
+`multiblock` exports a `compile_commands.json` file for IDE integration.
 
 ## 1️⃣ CMake configuration
 In the top-level `CMakeLists.txt`, make sure this line is present:
@@ -55,10 +54,10 @@ In the top-level `CMakeLists.txt`, make sure this line is present:
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 ```
 
-This automatically generates a `build/compile_commands.json` file after configuration.
+This generates `build/compile_commands.json` after configuration.
 
 ## 2️⃣ Build
-The setup script already builds. To rebuild manually:
+To rebuild manually:
 ```bash
 mkdir -p build && cd build
 cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release
