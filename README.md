@@ -1,5 +1,7 @@
 # multiblock
 
+Note: You are on the 'light' branch — a minimal, VTK-only setup intended for quick builds and tests. OpenVDB/VMTK features are disabled here; see main branch for full functionality.
+
 `multiblock` provides tools to analyze and manipulate surface meshes using VTK multiblock structures.
 
 ```bash
