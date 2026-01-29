@@ -87,6 +87,22 @@ void ApplyConfigOverrides(SolverConfig& config, const std::unordered_map<std::st
 	if (it != values.end() && !it->second.empty()) {
 		config.results_output = it->second;
 	}
+	it = values.find("obj_path");
+	if (it != values.end() && !it->second.empty()) {
+		config.obj_path = it->second;
+	}
+	it = values.find("default_feature");
+	if (it != values.end() && !it->second.empty()) {
+		config.default_feature = ToLower(it->second);
+	}
+	it = values.find("default_cpu_threads");
+	if (it != values.end() && !it->second.empty()) {
+		config.default_cpu_threads = static_cast<int>(ParseInt(it->second, config.default_cpu_threads));
+	}
+	it = values.find("default_num_gpus");
+	if (it != values.end() && !it->second.empty()) {
+		config.default_num_gpus = static_cast<int>(ParseInt(it->second, config.default_num_gpus));
+	}
 	it = values.find("use_mpi");
 	if (it != values.end() && !it->second.empty()) {
 		config.use_mpi = ToLower(it->second);
@@ -165,6 +181,10 @@ void WriteConfigFile(const std::string& path,
 	out << "feature=" << config.feature << "\n";
 	out << "use_mpi=" << config.use_mpi << "\n";
 	out << "results_output=" << config.results_output << "\n\n";
+	out << "obj_path=" << config.obj_path << "\n\n";
+	out << "default_feature=" << config.default_feature << "\n";
+	out << "default_cpu_threads=" << config.default_cpu_threads << "\n";
+	out << "default_num_gpus=" << config.default_num_gpus << "\n\n";
 
 	out << "work_items=" << config.work_items << "\n";
 	out << "inner_iters=" << config.inner_iters << "\n";

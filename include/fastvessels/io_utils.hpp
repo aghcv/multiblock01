@@ -3,6 +3,8 @@
 #include <vtkSmartPointer.h>
 #include <vtkDataSet.h>
 
+class vtkMultiBlockDataSet;
+
 namespace fastvessels {
 
 /**
@@ -19,5 +21,14 @@ namespace fastvessels {
  * @throws std::runtime_error if the file type is unsupported or reading fails.
  */
 vtkSmartPointer<vtkDataSet> ReadDataSet(const std::string& filename);
+
+/**
+ * @brief Write a VTK multiblock dataset to a .vtm file for visualization.
+ *
+ * @param dataset Multi-block dataset to write.
+ * @param filename Output file path (should end with .vtm).
+ * @throws std::runtime_error if writing fails.
+ */
+void WriteMultiBlock(const vtkMultiBlockDataSet* dataset, const std::string& filename);
 
 }  // namespace fastvessels

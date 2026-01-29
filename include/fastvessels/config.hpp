@@ -15,6 +15,11 @@ struct SolverConfig {
 
 	std::string config_path = "output/solver_input.txt";
 	std::string results_output = "output/results.txt";
+	std::string obj_path = "raw/geometry.vtp";
+
+	std::string default_feature = "";
+	int default_cpu_threads = 0;
+	int default_num_gpus = -1;
 
 	std::string use_mpi = "auto"; // auto|true|false
 

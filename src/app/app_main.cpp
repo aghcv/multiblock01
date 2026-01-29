@@ -5,6 +5,7 @@
 #include "fastvessels/preprocess.hpp"
 #include "fastvessels/solver.hpp"
 
+#include <exception>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
@@ -81,7 +82,18 @@ int main(int argc, char** argv) {
 	}
 
 	if (fastvessels::ToLower(config.mode) == "preprocess") {
-		auto result = fastvessels::RunPreprocess(config, cpu, gpu, mpi);
+		if (mpi.rank == 0) {
+			std::cout << "Preprocessing..." << std::endl;
+		}
+		fastvessels::PreprocessResult result;
+		try {
+			result = fastvessels::RunPreprocess(config, cpu, gpu, mpi);
+		} catch (const std::exception& ex) {
+			if (mpi.rank == 0) {
+				std::cerr << "Preprocessing failed: " << ex.what() << std::endl;
+			}
+			return 1;
+		}
 		if (mpi.rank == 0) {
 			fastvessels::WriteConfigFile(config.config_path, result.best_config, cpu, gpu, mpi,
 				"Solver configuration (updated by preprocess)");
@@ -115,7 +127,15 @@ int main(int argc, char** argv) {
 	if (mpi.rank == 0) {
 		std::cout << "Running simulation..." << std::endl;
 	}
-	auto result = fastvessels::RunBenchmark(config, cpu, gpu, mpi);
+	fastvessels::BenchmarkResult result;
+	try {
+		result = fastvessels::RunBenchmark(config, cpu, gpu, mpi);
+	} catch (const std::exception& ex) {
+		if (mpi.rank == 0) {
+			std::cerr << "Simulation failed: " << ex.what() << std::endl;
+		}
+		return 1;
+	}
 	if (mpi.rank == 0) {
 		fastvessels::WriteResults(config.results_output, config, cpu, gpu, mpi, result);
 		std::cout << "Wrote results: " << config.results_output << std::endl;

@@ -1,6 +1,7 @@
 # Build directories
 /build/
-
+/output/
+/raw/
 # CMake generated files
 /CMakeFiles/
 /CMakeCache.txt

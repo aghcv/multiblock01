@@ -42,8 +42,13 @@ void WriteResults(const std::string& path,
 	out << "inner_iters=" << result.inner_iters << "\n";
 	out << "cpu_threads=" << result.cpu_threads << "\n";
 	out << "num_gpus=" << result.gpu_workers << "\n";
+	out << "obj_path=" << config.obj_path << "\n";
+	out << "blocks=" << result.block_count << "\n";
+	out << "closed_surfaces=" << result.closed_surfaces << "\n";
+	out << "blocks_with_openings=" << result.blocks_with_openings << "\n";
+	out << "boundary_edge_cells=" << result.boundary_edge_cells << "\n";
 	out << "time_s=" << std::fixed << std::setprecision(6) << result.seconds << "\n";
-	out << "items_per_s=" << std::fixed << std::setprecision(2) << ThroughputItemsPerSecond(result) << "\n";
+	out << "blocks_per_s=" << std::fixed << std::setprecision(2) << ThroughputItemsPerSecond(result) << "\n";
 	out << "checksum=" << std::setprecision(6) << result.checksum << "\n";
 }
 

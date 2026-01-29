@@ -2,6 +2,7 @@
 
 #include <vtkSmartPointer.h>
 #include <vtkDataSet.h>
+#include <vtkMultiBlockDataSet.h>
 #include <vtkPolyData.h>
 #include <vtkPolyDataReader.h>
 #include <vtkXMLPolyDataReader.h>
@@ -9,6 +10,7 @@
 #include <vtkUnstructuredGrid.h>
 #include <vtkUnstructuredGridReader.h>
 #include <vtkXMLUnstructuredGridReader.h>
+#include <vtkXMLMultiBlockDataWriter.h>
 #include <stdexcept>
 #include <algorithm>
 
@@ -66,6 +68,21 @@ vtkSmartPointer<vtkDataSet> ReadDataSet(const std::string& filename) {
         throw std::runtime_error("Failed to read file: " + filename);
 
     return dataset;
+}
+
+void WriteMultiBlock(const vtkMultiBlockDataSet* dataset, const std::string& filename) {
+    if (!dataset) {
+        throw std::runtime_error("WriteMultiBlock: dataset is null");
+    }
+    if (filename.empty()) {
+        throw std::runtime_error("WriteMultiBlock: filename is empty");
+    }
+    auto writer = vtkSmartPointer<vtkXMLMultiBlockDataWriter>::New();
+    writer->SetFileName(filename.c_str());
+    writer->SetInputData(const_cast<vtkMultiBlockDataSet*>(dataset));
+    if (writer->Write() != 1) {
+        throw std::runtime_error("WriteMultiBlock: failed to write " + filename);
+    }
 }
 
 }  // namespace fastvessels

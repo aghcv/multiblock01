@@ -1,0 +1,27 @@
+#pragma once
+
+#include <string>
+
+#include <vtkMultiBlockDataSet.h>
+#include <vtkSmartPointer.h>
+
+namespace fastvessels {
+
+vtkSmartPointer<vtkMultiBlockDataSet> ReadGeometry_AsMultiBlock(const std::string& path);
+
+struct ObjPipelineStats {
+	int block_count = 0;
+	int closed_surfaces = 0;
+	int blocks_with_openings = 0;
+	long long boundary_edge_cells = 0;
+};
+
+ObjPipelineStats AnalyzeClosedSurfaces(vtkMultiBlockDataSet* blocks, int cpuThreads);
+
+vtkSmartPointer<vtkMultiBlockDataSet> BuildRegionSurfaceHierarchy(
+	vtkMultiBlockDataSet* inputMb,
+	const std::string& groupArrayName = "GroupId",
+	const std::string& regionArrayName = "RegionId",
+	bool addOriginalBlockId = true);
+
+} // namespace fastvessels

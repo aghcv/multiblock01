@@ -7,6 +7,12 @@ feature=default
 use_mpi=auto
 results_output=output/results.txt
 
+obj_path=raw/geometry.vtp
+
+default_feature=
+default_cpu_threads=0
+default_num_gpus=-1
+
 work_items=5000000
 inner_iters=64
 repetitions=3

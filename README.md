@@ -44,6 +44,7 @@ On first run, it generates a config file in output/ (default: output/solver_inpu
 
 ### Solver input
 - Default config file: output/solver_input.txt (auto-generated if missing)
+- Default geometry path: raw/geometry.vtp (VTP must exist before running the solver)
 - Key fields:
     - `feature`: `default`, `cpu_accelerated`, `gpu_accelerated`, `cpu_gpu_accelerated`
     - `cpu_threads`: threads per rank (`0` = auto)

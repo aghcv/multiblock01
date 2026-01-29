@@ -15,6 +15,10 @@ struct BenchmarkResult {
 	std::uint32_t inner_iters = 0;
 	int cpu_threads = 1;
 	int gpu_workers = 0;
+	int block_count = 0;
+	int closed_surfaces = 0;
+	int blocks_with_openings = 0;
+	long long boundary_edge_cells = 0;
 	std::string feature;
 };
 
