@@ -12,14 +12,12 @@
 #include <vtkCompositeDataSet.h>
 #include <vtkConnectivityFilter.h>
 #include <vtkCellData.h>
-#include <vtkCellArray.h>
 #include <vtkExtractCells.h>
 #include <vtkFeatureEdges.h>
 #include <vtkGeometryFilter.h>
 #include <vtkInformation.h>
 #include <vtkIdList.h>
 #include <vtkIntArray.h>
-#include <vtkLine.h>
 #include <vtkMapper.h>
 #include <vtkMultiBlockDataSet.h>
 #include <vtkOBJImporter.h>
@@ -30,12 +28,9 @@
 #include <vtkSmartPointer.h>
 #include <vtkStringArray.h>
 #include <vtkTriangleFilter.h>
-#include <vtkPoints.h>
-#include <vtkCenterOfMass.h>
 #include <vtkPolyDataNormals.h>
 
 #include <cctype>
-#include <array>
 #include <cmath>
 #include <filesystem>
 #include <iostream>
@@ -254,18 +249,6 @@ static void SetSurfaceTypeField(vtkPolyData* pd, bool isXlet) {
 	field->AddArray(arr);
 }
 
-static std::array<double, 3> ComputeCentroid(vtkPolyData* pd) {
-	std::array<double, 3> center = {0.0, 0.0, 0.0};
-	if (!pd || pd->GetNumberOfPoints() == 0) {
-		return center;
-	}
-	auto com = vtkSmartPointer<vtkCenterOfMass>::New();
-	com->SetInputData(pd);
-	com->SetUseScalarsAsWeights(false);
-	com->Update();
-	com->GetCenter(center.data());
-	return center;
-}
 
 static void SetRegionCountField(vtkPolyData* pd, const char* name, int value) {
 	if (!pd) return;
@@ -290,40 +273,6 @@ static int GetSurfaceTypeField(vtkPolyData* pd) {
 	return arr->GetValue(0);
 }
 
-static vtkSmartPointer<vtkPolyData> MakeCenterlinePolyData(
-	const std::array<double, 3>& a,
-	const std::array<double, 3>& b,
-	const std::string& nameA,
-	const std::string& nameB) {
-	auto points = vtkSmartPointer<vtkPoints>::New();
-	points->InsertNextPoint(a[0], a[1], a[2]);
-	points->InsertNextPoint(b[0], b[1], b[2]);
-
-	vtkIdType ids[2] = {0, 1};
-	auto lines = vtkSmartPointer<vtkCellArray>::New();
-	lines->InsertNextCell(2, ids);
-
-	auto poly = vtkSmartPointer<vtkPolyData>::New();
-	poly->SetPoints(points);
-	poly->SetLines(lines);
-
-	auto field = poly->GetFieldData();
-	auto arrA = vtkSmartPointer<vtkStringArray>::New();
-	arrA->SetName("XletA");
-	arrA->SetNumberOfComponents(1);
-	arrA->SetNumberOfTuples(1);
-	arrA->SetValue(0, nameA);
-	field->AddArray(arrA);
-
-	auto arrB = vtkSmartPointer<vtkStringArray>::New();
-	arrB->SetName("XletB");
-	arrB->SetNumberOfComponents(1);
-	arrB->SetNumberOfTuples(1);
-	arrB->SetValue(0, nameB);
-	field->AddArray(arrB);
-
-	return poly;
-}
 
 ObjPipelineStats AnalyzeClosedSurfaces(vtkMultiBlockDataSet* blocks, int cpuThreads) {
 	ObjPipelineStats stats;
@@ -578,150 +527,6 @@ void AnalyzeRegionGroupSurfaces(vtkMultiBlockDataSet* regions, int maxRegionThre
 			  << std::endl;
 }
 
-void BuildRegionCenterlines(vtkMultiBlockDataSet* regions, int maxRegionThreads, int maxCenterlineXlets) {
-	if (!regions) {
-		return;
-	}
-
-	const int regionCount = static_cast<int>(regions->GetNumberOfBlocks());
-	if (regionCount <= 0) {
-		return;
-	}
-
-	const int regionThreads = std::max(1, std::min(regionCount, maxRegionThreads));
-	std::vector<int> regionXletCounts(static_cast<size_t>(regionCount), 0);
-	std::vector<int> regionPairCounts(static_cast<size_t>(regionCount), 0);
-	std::vector<vtkSmartPointer<vtkMultiBlockDataSet>> regionCenterlines(static_cast<size_t>(regionCount));
-	std::vector<std::thread> workers;
-	workers.reserve(static_cast<size_t>(regionThreads));
-
-	const int maxXletsPerRegion = std::max(1, maxCenterlineXlets);
-
-	auto workerFn = [&](int begin, int end) {
-		for (int r = begin; r < end; ++r) {
-			auto regionMb = vtkMultiBlockDataSet::SafeDownCast(regions->GetBlock(static_cast<unsigned int>(r)));
-			if (!regionMb) continue;
-
-			std::vector<std::array<double, 3>> xletCenters;
-			std::vector<std::string> xletNames;
-			const int groupCount = static_cast<int>(regionMb->GetNumberOfBlocks());
-			for (int g = 0; g < groupCount; ++g) {
-				auto* pd = vtkPolyData::SafeDownCast(regionMb->GetBlock(static_cast<unsigned int>(g)));
-				if (!pd) continue;
-				if (GetSurfaceTypeField(pd) != 1) {
-					continue;
-				}
-				xletCenters.push_back(ComputeCentroid(pd));
-				std::string name = GetBlockName(regionMb, static_cast<unsigned int>(g));
-				if (name.empty()) {
-					name = "Xlet_" + std::to_string(xletCenters.size() - 1);
-				}
-				xletNames.push_back(name);
-			}
-
-			const int xletCount = static_cast<int>(xletCenters.size());
-			regionXletCounts[static_cast<size_t>(r)] = xletCount;
-			if (xletCount < 2) {
-				regionCenterlines[static_cast<size_t>(r)] = vtkSmartPointer<vtkMultiBlockDataSet>::New();
-				continue;
-			}
-			if (xletCount > maxXletsPerRegion) {
-				regionCenterlines[static_cast<size_t>(r)] = vtkSmartPointer<vtkMultiBlockDataSet>::New();
-				std::cout << "Region " << r << " centerlines skipped (xlets=" << xletCount
-						  << ", max=" << maxXletsPerRegion << ")" << std::endl;
-				continue;
-			}
-
-			std::vector<std::pair<int, int>> pairs;
-			pairs.reserve(static_cast<size_t>(xletCount * (xletCount - 1) / 2));
-			for (int i = 0; i < xletCount; ++i) {
-				for (int j = i + 1; j < xletCount; ++j) {
-					pairs.emplace_back(i, j);
-				}
-			}
-
-			const int pairCount = static_cast<int>(pairs.size());
-			regionPairCounts[static_cast<size_t>(r)] = pairCount;
-			const int pairThreads = std::max(1, std::min(pairCount, 4));
-			std::vector<std::vector<vtkSmartPointer<vtkPolyData>>> localLines(static_cast<size_t>(pairThreads));
-			std::vector<std::thread> pairWorkers;
-			pairWorkers.reserve(static_cast<size_t>(pairThreads));
-
-			int base = pairCount / pairThreads;
-			int rem = pairCount % pairThreads;
-			int start = 0;
-			for (int t = 0; t < pairThreads; ++t) {
-				int count = base + (t < rem ? 1 : 0);
-				int endIdx = start + count;
-				pairWorkers.emplace_back([&, t, start, endIdx]() {
-					for (int p = start; p < endIdx; ++p) {
-						const int a = pairs[static_cast<size_t>(p)].first;
-						const int b = pairs[static_cast<size_t>(p)].second;
-						localLines[static_cast<size_t>(t)].push_back(
-							MakeCenterlinePolyData(xletCenters[a], xletCenters[b], xletNames[a], xletNames[b]));
-					}
-				});
-				start = endIdx;
-			}
-
-			for (auto& w : pairWorkers) {
-				w.join();
-			}
-
-			auto centerlinesMb = vtkSmartPointer<vtkMultiBlockDataSet>::New();
-			centerlinesMb->SetNumberOfBlocks(static_cast<unsigned int>(pairCount));
-			unsigned int blockIdx = 0;
-			for (const auto& bucket : localLines) {
-				for (const auto& line : bucket) {
-					centerlinesMb->SetBlock(blockIdx, line);
-					std::ostringstream name;
-					name << "Centerline_" << blockIdx;
-					SetBlockName(centerlinesMb, blockIdx, name.str());
-					++blockIdx;
-				}
-			}
-
-			regionCenterlines[static_cast<size_t>(r)] = centerlinesMb;
-		}
-	};
-
-	int base = regionCount / regionThreads;
-	int rem = regionCount % regionThreads;
-	int start = 0;
-	for (int t = 0; t < regionThreads; ++t) {
-		int count = base + (t < rem ? 1 : 0);
-		int end = start + count;
-		workers.emplace_back(workerFn, start, end);
-		start = end;
-	}
-
-	for (auto& w : workers) {
-		w.join();
-	}
-
-	for (int r = 0; r < regionCount; ++r) {
-		auto regionMb = vtkMultiBlockDataSet::SafeDownCast(regions->GetBlock(static_cast<unsigned int>(r)));
-		if (!regionMb) continue;
-		auto centerlinesMb = regionCenterlines[static_cast<size_t>(r)];
-		if (!centerlinesMb) continue;
-
-		const unsigned int oldCount = regionMb->GetNumberOfBlocks();
-		regionMb->SetNumberOfBlocks(oldCount + 1);
-		regionMb->SetBlock(oldCount, centerlinesMb);
-		SetBlockName(regionMb, oldCount, "Centerlines");
-	}
-
-	for (int r = 0; r < regionCount; ++r) {
-		const std::string regionName = GetBlockName(regions, static_cast<unsigned int>(r));
-		const int xletCount = regionXletCounts[static_cast<size_t>(r)];
-		const int pairCount = regionPairCounts[static_cast<size_t>(r)];
-		if (xletCount <= 0 && pairCount <= 0) continue;
-		std::cout << "Region " << (regionName.empty() ? std::to_string(r) : regionName)
-				  << " centerlines=" << pairCount
-				  << " xlets=" << xletCount
-				  << std::endl;
-	}
-}
 
 static void SetBlockName(vtkMultiBlockDataSet* mb, unsigned int idx, const std::string& name) {
 	if (!mb) return;

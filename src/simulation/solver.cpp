@@ -79,7 +79,6 @@ static BenchmarkResult RunBenchmarkOnce(const SolverConfig& config, const CpuInf
 	auto blocks = ReadGeometry_AsMultiBlock(config.obj_path);
 	auto refined = BuildRegionSurfaceHierarchy(blocks, "GroupId", "RegionId", true);
 	AnalyzeRegionGroupSurfaces(refined, runtime.cpu_threads, config.unify_walls);
-	BuildRegionCenterlines(refined, runtime.cpu_threads, config.max_centerline_xlets);
 
 	std::filesystem::create_directories("output");
 	WriteMultiBlock(refined, "output/geometry_multiblock.vtm");
