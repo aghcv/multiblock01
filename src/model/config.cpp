@@ -137,6 +137,14 @@ void ApplyConfigOverrides(SolverConfig& config, const std::unordered_map<std::st
 	if (it != values.end() && !it->second.empty()) {
 		config.repetitions = static_cast<int>(std::max(1LL, ParseInt(it->second, config.repetitions)));
 	}
+	it = values.find("unify_walls");
+	if (it != values.end() && !it->second.empty()) {
+		config.unify_walls = ParseBool(it->second, config.unify_walls);
+	}
+	it = values.find("max_centerline_xlets");
+	if (it != values.end() && !it->second.empty()) {
+		config.max_centerline_xlets = static_cast<int>(std::max(1LL, ParseInt(it->second, config.max_centerline_xlets)));
+	}
 }
 
 SolverConfig LoadConfig(const std::string& path, const SolverConfig& defaults) {
@@ -189,6 +197,8 @@ void WriteConfigFile(const std::string& path,
 	out << "work_items=" << config.work_items << "\n";
 	out << "inner_iters=" << config.inner_iters << "\n";
 	out << "repetitions=" << config.repetitions << "\n\n";
+	out << "unify_walls=" << (config.unify_walls ? "true" : "false") << "\n\n";
+	out << "max_centerline_xlets=" << config.max_centerline_xlets << "\n\n";
 
 	out << "cpu_threads=" << config.cpu_threads << "\n";
 	out << "min_cpu_for_gpu=" << config.min_cpu_for_gpu << "\n";

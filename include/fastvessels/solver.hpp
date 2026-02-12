@@ -22,7 +22,14 @@ struct BenchmarkResult {
 	std::string feature;
 };
 
+struct RuntimeConfig {
+	int cpu_threads = 1;
+	int gpu_workers = 0;
+	std::string resolved_feature;
+};
+
 BenchmarkResult RunBenchmark(const SolverConfig& config, const CpuInfo& cpu, const GpuInfo& gpu, const MpiInfo& mpi);
+RuntimeConfig ResolveRuntimeConfig(const SolverConfig& config, const CpuInfo& cpu, const GpuInfo& gpu);
 
 double ThroughputItemsPerSecond(const BenchmarkResult& r);
 

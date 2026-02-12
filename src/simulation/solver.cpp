@@ -14,12 +14,8 @@
 
 namespace fastvessels {
 
-static BenchmarkResult RunBenchmarkOnce(const SolverConfig& config, const CpuInfo& cpu, const GpuInfo& gpu, const MpiInfo& mpi) {
-	BenchmarkResult result;
-	result.feature = config.feature;
-	result.work_items = config.work_items;
-	result.inner_iters = config.inner_iters;
-
+RuntimeConfig ResolveRuntimeConfig(const SolverConfig& config, const CpuInfo& cpu, const GpuInfo& gpu) {
+	RuntimeConfig runtime;
 	const auto& featureSpec = ResolveFeatureSpec(config.feature);
 	int detectedGpus = gpu.count;
 	int requestedGpus = config.num_gpus;
@@ -62,18 +58,33 @@ static BenchmarkResult RunBenchmarkOnce(const SolverConfig& config, const CpuInf
 		cpuThreads = std::max(cpuThreads, config.min_cpu_for_gpu);
 	}
 
-	result.cpu_threads = cpuThreads;
-	result.gpu_workers = useGpus;
+	runtime.cpu_threads = cpuThreads;
+	runtime.gpu_workers = useGpus;
+	runtime.resolved_feature = resolvedFeature.name;
+	return runtime;
+}
+
+static BenchmarkResult RunBenchmarkOnce(const SolverConfig& config, const CpuInfo& cpu, const GpuInfo& gpu, const MpiInfo& mpi) {
+	BenchmarkResult result;
+	result.feature = config.feature;
+	result.work_items = config.work_items;
+	result.inner_iters = config.inner_iters;
+
+	RuntimeConfig runtime = ResolveRuntimeConfig(config, cpu, gpu);
+	result.cpu_threads = runtime.cpu_threads;
+	result.gpu_workers = runtime.gpu_workers;
 
 	auto start = std::chrono::steady_clock::now();
 
 	auto blocks = ReadGeometry_AsMultiBlock(config.obj_path);
 	auto refined = BuildRegionSurfaceHierarchy(blocks, "GroupId", "RegionId", true);
+	AnalyzeRegionGroupSurfaces(refined, runtime.cpu_threads, config.unify_walls);
+	BuildRegionCenterlines(refined, runtime.cpu_threads, config.max_centerline_xlets);
 
 	std::filesystem::create_directories("output");
 	WriteMultiBlock(refined, "output/geometry_multiblock.vtm");
 
-	ObjPipelineStats stats = AnalyzeClosedSurfaces(refined, cpuThreads);
+	ObjPipelineStats stats = AnalyzeClosedSurfaces(refined, runtime.cpu_threads);
 
 	auto stop = std::chrono::steady_clock::now();
 	result.seconds = std::chrono::duration<double>(stop - start).count();
@@ -86,6 +97,10 @@ static BenchmarkResult RunBenchmarkOnce(const SolverConfig& config, const CpuInf
 }
 
 BenchmarkResult RunBenchmark(const SolverConfig& config, const CpuInfo& cpu, const GpuInfo& gpu, const MpiInfo& mpi) {
+	if (ToLower(config.mode) == "run") {
+		return RunBenchmarkOnce(config, cpu, gpu, mpi);
+	}
+
 	BenchmarkResult best;
 	best.seconds = std::numeric_limits<double>::infinity();
 	for (int r = 0; r < config.repetitions; ++r) {

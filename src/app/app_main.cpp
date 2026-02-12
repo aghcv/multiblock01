@@ -7,11 +7,21 @@
 
 #include <exception>
 #include <fstream>
+#include <chrono>
 #include <iomanip>
 #include <iostream>
 #include <vector>
 
 namespace {
+
+void PrintSectionHeader(const std::string& title) {
+	std::cout << "\n=== " << title << " ===" << std::endl;
+}
+
+void PrintSectionDuration(const std::chrono::steady_clock::time_point& start_time) {
+	const auto elapsed = std::chrono::duration<double>(std::chrono::steady_clock::now() - start_time);
+	std::cout << "Section time: " << std::fixed << std::setprecision(3) << elapsed.count() << "s" << std::endl;
+}
 
 fastvessels::SolverConfig ParseArgs(int argc, char** argv, const fastvessels::SolverConfig& defaults) {
 	fastvessels::SolverConfig config = defaults;
@@ -104,12 +114,14 @@ int main(int argc, char** argv) {
 	}
 
 	if (mpi.rank == 0) {
-		std::cout << "Detected CPU logical_cores=" << cpu.logical;
+		const auto section_start = std::chrono::steady_clock::now();
+		PrintSectionHeader("Identifying local configuration");
+		std::cout << "CPU: logical_cores=" << cpu.logical;
 		if (cpu.physical > 0) {
 			std::cout << " physical_cores=" << cpu.physical;
 		}
 		std::cout << std::endl;
-		std::cout << "Detected GPU devices=" << gpu.count;
+		std::cout << "GPU: devices=" << gpu.count;
 		if (gpu.cores > 0) {
 			std::cout << " gpu_cores=" << gpu.cores;
 		}
@@ -122,10 +134,22 @@ int main(int argc, char** argv) {
 			std::cout << "Note: GPU feature requested but no GPU detected. "
 					  << "This build uses a CPU fallback for GPU workers." << std::endl;
 		}
+		PrintSectionDuration(section_start);
 	}
 
+	std::chrono::steady_clock::time_point simulation_start;
 	if (mpi.rank == 0) {
-		std::cout << "Running simulation..." << std::endl;
+		simulation_start = std::chrono::steady_clock::now();
+		PrintSectionHeader("Running simulation");
+		const auto runtime = fastvessels::ResolveRuntimeConfig(config, cpu, gpu);
+		std::cout << "Requested: feature=" << config.feature
+				  << " cpu_threads=" << config.cpu_threads
+				  << " gpus=" << config.num_gpus
+				  << std::endl;
+		std::cout << "Effective: feature=" << runtime.resolved_feature
+				  << " cpu_threads=" << runtime.cpu_threads
+				  << " gpu_workers=" << runtime.gpu_workers
+				  << std::endl;
 	}
 	fastvessels::BenchmarkResult result;
 	try {
@@ -139,6 +163,7 @@ int main(int argc, char** argv) {
 	if (mpi.rank == 0) {
 		fastvessels::WriteResults(config.results_output, config, cpu, gpu, mpi, result);
 		std::cout << "Wrote results: " << config.results_output << std::endl;
+		PrintSectionDuration(simulation_start);
 	}
 	return 0;
 }

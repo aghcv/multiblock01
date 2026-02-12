@@ -31,6 +31,8 @@ struct SolverConfig {
 	std::uint64_t work_items = 5'000'000;
 	std::uint32_t inner_iters = 64;
 	int repetitions = 3;
+	bool unify_walls = false;
+	int max_centerline_xlets = 25;
 };
 
 struct FeatureSpec {

@@ -18,6 +18,10 @@ struct ObjPipelineStats {
 
 ObjPipelineStats AnalyzeClosedSurfaces(vtkMultiBlockDataSet* blocks, int cpuThreads);
 
+void AnalyzeRegionGroupSurfaces(vtkMultiBlockDataSet* regions, int maxRegionThreads, bool unifyWalls);
+
+void BuildRegionCenterlines(vtkMultiBlockDataSet* regions, int maxRegionThreads, int maxCenterlineXlets);
+
 vtkSmartPointer<vtkMultiBlockDataSet> BuildRegionSurfaceHierarchy(
 	vtkMultiBlockDataSet* inputMb,
 	const std::string& groupArrayName = "GroupId",
