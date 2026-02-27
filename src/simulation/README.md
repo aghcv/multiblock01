@@ -1,3 +1,0 @@
-# simulation
-
-Simulation/solver implementations.

@@ -9,15 +9,6 @@ namespace fastvessels {
 
 vtkSmartPointer<vtkMultiBlockDataSet> ReadGeometry_AsMultiBlock(const std::string& path);
 
-struct ObjPipelineStats {
-	int block_count = 0;
-	int closed_surfaces = 0;
-	int blocks_with_openings = 0;
-	long long boundary_edge_cells = 0;
-};
-
-ObjPipelineStats AnalyzeClosedSurfaces(vtkMultiBlockDataSet* blocks, int cpuThreads);
-
 void AnalyzeRegionGroupSurfaces(vtkMultiBlockDataSet* regions, int maxRegionThreads, bool unifyWalls);
 
 vtkSmartPointer<vtkMultiBlockDataSet> BuildRegionSurfaceHierarchy(

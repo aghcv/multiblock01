@@ -13,52 +13,36 @@ endif()
 find_package(VTK REQUIRED COMPONENTS
     CommonCore
     CommonDataModel
-    IOImport
     IOXML
-    IOLegacy
-    IOGeometry
     FiltersCore
     FiltersGeometry
-    RenderingCore
-    RenderingOpenGL2
 )
 
 add_library(multiblock_lib STATIC
-    src/model/common.cpp
-    src/model/env_info.cpp
-    src/model/config.cpp
     src/geometry/mblock_util.cpp
     src/geometry/io_utils.cpp
-    src/simulation/solver.cpp
-    src/preprocessing/preprocess.cpp
-    src/results/postprocess.cpp
 )
 target_include_directories(multiblock_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(multiblock_lib PUBLIC
     VTK::CommonCore
     VTK::CommonDataModel
-    VTK::IOImport
     VTK::IOXML
-    VTK::IOLegacy
-    VTK::IOGeometry
     VTK::FiltersCore
     VTK::FiltersGeometry
-    VTK::RenderingCore
-    VTK::RenderingOpenGL2
 )
 
 add_executable(multiblock src/app/app_main.cpp)
 target_include_directories(multiblock PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(multiblock PRIVATE multiblock_lib
-    VTK::CommonCore VTK::CommonDataModel VTK::IOImport VTK::IOXML VTK::IOLegacy VTK::IOGeometry
-    VTK::FiltersCore VTK::FiltersGeometry VTK::RenderingCore VTK::RenderingOpenGL2)
+    VTK::CommonCore VTK::CommonDataModel VTK::IOXML
+    VTK::FiltersCore VTK::FiltersGeometry)
 
 set_target_properties(multiblock PROPERTIES
     SUFFIX ".mbx"
 )
 
 vtk_module_autoinit(TARGETS multiblock multiblock_lib MODULES
-    VTK::CommonCore VTK::CommonDataModel VTK::IOImport VTK::IOXML VTK::IOLegacy VTK::IOGeometry
-    VTK::FiltersCore VTK::FiltersGeometry VTK::RenderingCore VTK::RenderingOpenGL2)
+    VTK::CommonCore VTK::CommonDataModel VTK::IOXML
+    VTK::FiltersCore VTK::FiltersGeometry)
 
 # No unit tests on the 'light' branch
