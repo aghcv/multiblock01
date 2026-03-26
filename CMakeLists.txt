@@ -45,4 +45,18 @@ vtk_module_autoinit(TARGETS multiblock multiblock_lib MODULES
     VTK::CommonCore VTK::CommonDataModel VTK::IOXML
     VTK::FiltersCore VTK::FiltersGeometry)
 
-# No unit tests on the 'light' branch
+enable_testing()
+
+add_executable(multiblock_tests tests/test_pipeline.cpp)
+target_include_directories(multiblock_tests PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_link_libraries(multiblock_tests PRIVATE multiblock_lib
+    VTK::CommonCore VTK::CommonDataModel VTK::IOXML
+    VTK::FiltersCore VTK::FiltersGeometry)
+
+vtk_module_autoinit(TARGETS multiblock_tests MODULES
+    VTK::CommonCore VTK::CommonDataModel VTK::IOXML
+    VTK::FiltersCore VTK::FiltersGeometry)
+
+add_test(NAME vtp_to_vtm COMMAND multiblock_tests
+    ${CMAKE_SOURCE_DIR}/raw/vtp/cardiovascular.vtp
+    ${CMAKE_BINARY_DIR}/test_output.vtm)

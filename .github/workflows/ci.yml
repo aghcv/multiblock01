@@ -1,0 +1,32 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up conda
+        uses: conda-incubator/setup-miniconda@v3
+        with:
+          environment-file: environment.yml
+          activate-environment: cxxgeom
+          auto-activate-base: false
+          use-mamba: true
+
+      - name: Configure
+        shell: bash -l {0}
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        shell: bash -l {0}
+        run: cmake --build build --config Release
+
+      - name: Test
+        shell: bash -l {0}
+        run: ctest --test-dir build --output-on-failure
