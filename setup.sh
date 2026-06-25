@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Minimal setup for the 'light' branch
-# - Creates conda env with cmake, ninja, vtk
+# Default setup for the 'lightvdb' branch
+# - Creates conda env with cmake, ninja, vtk, openvdb
 # - Configures and builds the project with Ninja
 
 PROJECT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -30,9 +30,10 @@ conda env create -f "${PROJECT_DIR}/environment.yml" -n "${ENV_NAME}"
 source "$(conda info --base)/etc/profile.d/conda.sh"
 conda activate "${ENV_NAME}"
 
-say "Configuring CMake (Release)"
+say "Configuring CMake (Release, VDB/CUDA enabled)"
 rm -rf "${PROJECT_DIR}/build"
-cmake -S "${PROJECT_DIR}" -B "${PROJECT_DIR}/build" -G Ninja -DCMAKE_BUILD_TYPE=Release
+cmake -S "${PROJECT_DIR}" -B "${PROJECT_DIR}/build" -G Ninja -DCMAKE_BUILD_TYPE=Release \
+  -DENABLE_VDB=ON -DENABLE_CUDA=ON
 
 say "Building with Ninja"
 cmake --build "${PROJECT_DIR}/build" --config Release

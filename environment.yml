@@ -5,4 +5,5 @@ dependencies:
   - cmake>=3.24
   - ninja
   - vtk>=9.2
+  - openvdb
   - git

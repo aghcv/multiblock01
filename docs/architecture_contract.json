@@ -1,0 +1,89 @@
+{
+  "project_working_name": "Digital Patient Infrastructure",
+  "canonical_object": "4d_vtk_multiblock",
+  "purpose": "Compile 4D hybrid human phantoms into simulation-ready, physics-annotated, AI-trainable digital patient datasets.",
+  "mandatory_invariants": [
+    {
+      "id": "canonical_vtk_spine",
+      "statement": "The 4D VTK multiblock object is the canonical data object for anatomy, motion, derived geometry, solver inputs, solver outputs, and provenance."
+    },
+    {
+      "id": "volume_truth_first",
+      "statement": "Labeled voxel image data is the source of anatomical truth; surfaces and meshes are derived, validated, and repairable."
+    },
+    {
+      "id": "stable_anatomy_identity",
+      "statement": "Anatomy labels and block identities must be stable across timesteps and population variants."
+    },
+    {
+      "id": "solver_outputs_return_home",
+      "statement": "Every solver output must map back to the VTK hierarchy with units, timestep, anatomy id, solver id, and provenance."
+    },
+    {
+      "id": "progressive_fidelity",
+      "statement": "The framework must support reduced-order, local high-fidelity, coupled multiphysics, and AI-surrogate datasets side by side."
+    },
+    {
+      "id": "automated_quality_gates",
+      "statement": "Mesh quality, topology, boundary labels, units, and result provenance need automated tests before data is accepted."
+    }
+  ],
+  "decomposition_axes": [
+    "spatial_region",
+    "anatomical_system",
+    "connected_component",
+    "physics_domain",
+    "solver_partition",
+    "learning_view"
+  ],
+  "pipeline_layers": [
+    "ingest_4d_vtk",
+    "anatomy_registry",
+    "geometry_repair",
+    "topology_decomposition",
+    "mesh_generation",
+    "physics_case_builder",
+    "solver_adapters",
+    "result_ingestion",
+    "corpus_builder"
+  ],
+  "simulation_ready_block_required_fields": [
+    "anatomy_id",
+    "time_index",
+    "source_paths",
+    "source_truth",
+    "physics_tags",
+    "geometry_quality",
+    "interfaces",
+    "mesh_assets",
+    "materials",
+    "boundary_conditions",
+    "solver_targets",
+    "results",
+    "provenance"
+  ],
+  "fidelity_grades": [
+    "grade_0_anatomy",
+    "grade_1_reduced_order",
+    "grade_2_local_3d",
+    "grade_3_coupled_multiphysics",
+    "grade_4_hybrid_whole_body",
+    "grade_5_ai_surrogate"
+  ],
+  "candidate_solver_adapters": [
+    "VMTK",
+    "Gmsh",
+    "OpenFOAM",
+    "SimVascular_svMultiPhysics",
+    "FEBio",
+    "SOFA",
+    "FEniCS",
+    "MFEM",
+    "MOOSE",
+    "CalculiX",
+    "Elmer",
+    "SU2",
+    "preCICE"
+  ]
+}
+
